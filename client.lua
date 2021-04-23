@@ -22,28 +22,29 @@ local animacja = false
 
 RegisterNetEvent('kaczor:picie')
 AddEventHandler('kaczor:picie', function()
-    TriggerClientEvent("pNotify:SendNotification", src, {text = "Wypijasz GBSA", type = "atlantis", queue = "global", timeout = 2000, layout = "atlantis"})
-    if not animacja then
-		local prop_name = prop_name or 'prop_ecola_can'
-		animacja = true
-		local playerPed = GetPlayerPed(-1)
-		Citizen.CreateThread(function()
-			local x,y,z = table.unpack(GetEntityCoords(playerPed))
-			prop = CreateObject(GetHashKey(prop_name), x, y, z+0.2,  true,  true, true)			
-	        AttachEntityToEntity(prop, playerPed, GetPedBoneIndex(playerPed, 18905), 0.12, 0.028, 0.001, 10.0, 175.0, 0.0, true, true, false, true, 1, true)
+	if not IsAnimated then
+		local playerPed  = PlayerPedId()
+		local coords     = GetEntityCoords(playerPed)
+		local boneIndex  = GetPedBoneIndex(playerPed, 18905)
+
+		IsAnimated = true
+		ESX.Game.SpawnObject('prop_ld_flow_bottle', {
+			x = coords.x,
+			y = coords.y,
+			z = coords.z - 3
+		}, function(object)
 			RequestAnimDict('mp_player_intdrink')  
 			while not HasAnimDictLoaded('mp_player_intdrink') do
-				Wait(0)
+				Citizen.Wait(15)
 			end
-			TaskPlayAnim(playerPed, 'mp_player_intdrink', 'loop_bottle', 1.0, -1.0, 3000, 0, 1, true, true, true)
-            Wait(3000)
-            TriggerClientEvent("pNotify:SendNotification", src, {text = "Zmiata Cię Z Planszy ", type = "atlantis", queue = "global", timeout = 2000, layout = "atlantis"})
-	        animacja = false
+
+			AttachEntityToEntity(object, playerPed, boneIndex, 0.09, -0.065, 0.045, -100.0, 0.0, -25.0, 1, 1, 0, 1, 1, 1)
+			TaskPlayAnim(playerPed, 'mp_player_intdrink', 'loop_bottle', 1.0, -1.0, -1, 48, 0.0, false, false, false)
+			Citizen.Wait(4000)
+
+	        IsAnimated = false
 	        ClearPedSecondaryTask(playerPed)
-			DeleteObject(prop)
+			DeleteObject(object)
 		end)
-    end
-    SetRunSprintMultiplierForPlayer(player, 1.30)
-    Wait(30*1000)
-    SetRunSprintMultiplierForPlayer(player, 1.3)
+	end
 end)
